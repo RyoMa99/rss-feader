@@ -3,36 +3,39 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { glob } from 'glob';
 
+// 常に追加するフロントマターを定義
+const frontMatter = `---
+description: 
+globs: 
+alwaysApply: true
+---
+`;
+
 // mdcファイルとmdディレクトリの対応関係の定義
 const mdcConfigurations = [
   {
-    output: "../.cursor/rules/000_general.mdc",
+    output: "../.cursor/rules/00_general.mdc",
     sourceDir: "00_general",
-    header: "",
     filePattern: "*.md",
   },
   {
     output: "../.cursor/rules/01_common.mdc",
     sourceDir: "01_common",
-    header: "",
     filePattern: "*.md",
   },
   {
     output: "../.cursor/rules/02_frontend.mdc",
     sourceDir: "02_frontend",
-    header: "",
     filePattern: "*.md",
   },
   {
     output: "../.cursor/rules/03_backend.mdc",
     sourceDir: "03_backend",
-    header: "",
     filePattern: "*.md",
   },
   {
     output: "../.cursor/rules/04_database.mdc",
     sourceDir: "04_database",
-    header: "",
     filePattern: "*.md",
   }
 ];
@@ -61,11 +64,8 @@ async function buildMdcFile(config) {
     return numA - numB;
   });
   
-  // コンテンツの初期化
-  let content = '';
-  
-  // ヘッダー情報を追加
-  content += config.header;
+  // コンテンツの初期化（常にフロントマターから始める）
+  let content = frontMatter;
   
   // 各mdファイルの内容を結合
   for (const file of files) {
@@ -107,8 +107,8 @@ async function cleanMdcFiles() {
   // .mdc ファイルを検索して中身を空にする
   const mdcFiles = await glob(path.join(rulesDir, '*.mdc'));
   for (const file of mdcFiles) {
-    console.log(`Clearing content of MDC file: ${file}`);
-    await fs.promises.writeFile(file, ''); // ファイルの中身を空にする
+    console.log(`Clearning content of MDC file: ${file}`);
+    await fs.promises.unlink(file);
   }
 }
 
