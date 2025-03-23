@@ -5,8 +5,8 @@ import { glob } from 'glob';
 
 // 常に追加するフロントマターを定義
 const frontMatter = `---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 `;
@@ -37,7 +37,17 @@ const mdcConfigurations = [
     output: "../.cursor/rules/04_database.mdc",
     sourceDir: "04_database",
     filePattern: "*.md",
-  }
+  },
+  {
+    output: "../.cursor/rules/05_infra.mdc",
+    sourceDir: "05_infra",
+    filePattern: "*.md",
+  },
+  {
+    output: "../.cursor/rules/06_cicd.mdc",
+    sourceDir: "06_cicd",
+    filePattern: "*.md",
+  },
 ];
 
 // ファイル名から数字プレフィックスを抽出してソートするための関数
@@ -50,33 +60,33 @@ function extractNumberPrefix(filename) {
 async function buildMdcFile(config) {
   // ルートディレクトリの取得（スクリプトの実行場所から相対パスで計算）
   const rootDir = path.resolve(process.cwd());
-  
+
   // mdファイルのパターンを作成
   const pattern = path.join(rootDir, config.sourceDir, config.filePattern);
-  
+
   // mdファイルを検索
   const files = await glob(pattern);
-  
+
   // ファイル名でソート
   files.sort((a, b) => {
     const numA = extractNumberPrefix(path.basename(a));
     const numB = extractNumberPrefix(path.basename(b));
     return numA - numB;
   });
-  
+
   // コンテンツの初期化（常にフロントマターから始める）
   let content = frontMatter;
-  
+
   // 各mdファイルの内容を結合
   for (const file of files) {
     // console.log(`Processing file: ${file}`);
     const fileContent = await fs.promises.readFile(file, 'utf8');
     content += fileContent + '\n\n';
   }
-  
+
   // mdcファイルを出力
   const outputPath = path.join(rootDir, config.output);
-  
+
   // 出力ディレクトリが存在することを確認
   const outputDir = path.dirname(outputPath);
   try {
@@ -84,17 +94,17 @@ async function buildMdcFile(config) {
   } catch (error) {
     // ディレクトリが既に存在する場合は無視
   }
-  
+
   // ファイルに書き込み
   await fs.promises.writeFile(outputPath, content);
-  
+
   console.log(`Generated ${config.output} from ${files.length} files in ${config.sourceDir}`);
 }
 
 // 既存のMDCファイルの中身を空にする関数
 async function cleanMdcFiles() {
   const rootDir = path.resolve(process.cwd());
-  
+
   // .cursor/rules ディレクトリの存在確認
   const rulesDir = path.join(rootDir, '../.cursor/rules');
   try {
@@ -103,7 +113,7 @@ async function cleanMdcFiles() {
     // ディレクトリが存在しない場合は何もしない
     return;
   }
-  
+
   // .mdc ファイルを検索して中身を空にする
   const mdcFiles = await glob(path.join(rulesDir, '*.mdc'));
   for (const file of mdcFiles) {
@@ -117,7 +127,7 @@ async function main() {
   try {
     // 既存のMDCファイルを削除
     await cleanMdcFiles();
-    
+
     // 各設定に対してmdcファイルを生成
     for (const config of mdcConfigurations) {
       await buildMdcFile(config);
